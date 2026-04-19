@@ -48,7 +48,7 @@ input,select{
 
 input::placeholder{ color:#777; }
 
-/* 🔥 CORREÇÃO: select apagado */
+/* ðŸ”¥ CORREÃ‡ÃƒO: select apagado */
 select{
     color:#777;
 }
@@ -154,7 +154,7 @@ function gerar(){
     let qtd = document.getElementById("qtd").value || 10;
 
     if(!bin){
-        alert("Coloque pelo menos o início!");
+        alert("Coloque pelo menos o Início!");
         return;
     }
 
@@ -164,7 +164,7 @@ function gerar(){
 
         let mes = document.getElementById("mes").value || randomMes();
         let ano = document.getElementById("ano").value || randomAno();
-        let cvv = document.getElementById("cvv").value || randomCvv();
+        let cvv = document.getElementById("cvv").value || randomCvv(bin);
 
         let numero = completar(bin);
 
@@ -178,10 +178,15 @@ function gerar(){
 }
 
 function completar(bin){
-    while(bin.length < 16){
-        bin += Math.floor(Math.random()*10);
+    // troca todos os 'x' por números aleatórios
+    let resultado = bin.replace(/x/gi, () => Math.floor(Math.random()*10));
+
+    // completa até 16 dígitos se ainda faltar
+    while(resultado.length < 16){
+        resultado += Math.floor(Math.random()*10);
     }
-    return bin;
+
+    return resultado;
 }
 
 function randomMes(){
@@ -192,8 +197,14 @@ function randomAno(){
     return Math.floor(Math.random()*10)+2026;
 }
 
-function randomCvv(){
-    return Math.floor(Math.random()*900)+100;
+function randomCvv(bin){
+    bin = bin.replace(/\s/g, "");
+
+    if(bin.startsWith("34") || bin.startsWith("37")){
+        return Math.floor(Math.random()*9000) + 1000; // 4 dígitos
+    } else {
+        return Math.floor(Math.random()*900) + 100; // 3 dígitos
+    }
 }
 
 function copiar(){
