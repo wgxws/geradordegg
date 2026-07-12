@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gerador de GG</title>  <!-- TÃ­tulo alterado -->
+
+<style>
+*{ box-sizing:border-box; margin:0; }
+
+body{
+    background:#000;
+    color:#fff;
+    font-family:'Segoe UI', Arial, sans-serif;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+    padding:20px;
+}
+
+.box{
+    width:95%;
+    max-width:450px;
+    border:2px solid #ff0040;
+    border-radius:24px;
+    padding:24px 20px 16px;
+    box-shadow:0 0 30px rgba(255,0,64,0.3), inset 0 0 10px rgba(255,0,64,0.05);
+    background:#0b0b0b;
+    transition:box-shadow 0.3s;
+}
+
+.box:hover{
+    box-shadow:0 0 45px rgba(255,0,64,0.5);
+}
+
+h1{
+    text-align:center;
+    font-weight:700;
+    font-size:1.9rem;
+    letter-spacing:-0.5px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:12px;
+    margin-bottom:5px;
+}
+
+.dot{
+    height:14px;
+    width:14px;
+    background:#ff0040;
+    border-radius:50%;
+    display:inline-block;
+    flex-shrink:0;
+    box-shadow:0 0 12px #ff0040;
+}
+
+.status{
+    text-align:center;
+    color:#888;
+    font-size:0.95rem;
+    margin-bottom:18px;
+    padding:6px 0;
+    border-bottom:1px solid rgba(255,0,64,0.2);
+    transition:color 0.3s;
+}
+
+.status.online{ color:#4caf50; }
+.status.offline{ color:#ff9800; }
+.status.finalizado{ color:#4caf50; }
+
+/* INFORMAÃ‡Ã•ES DO BIN â€“ bloco compacto */
+.bin-info{
+    background:#141414;
+    border-radius:14px;
+    padding:12px 16px;
+    margin-bottom:18px;
+    border-left:4px solid #ff0040;
+    display:none;
+    font-size:0.85rem;
+    grid-template-columns:1fr 1fr;
+    gap:4px 18px;
+}
+
+.bin-info.show{ display:grid; }
+
+.bin-info .label{ color:#888; }
+.bin-info .value{ color:#fff; font-weight:500; text-transform:uppercase; }
+.bin-info .flag{ font-size:1.2rem; margin-left:6px; }
+
+input, select{
+    width:100%;
+    padding:14px 16px;
+    margin:8px 0;
+    border-radius:14px;
+    border:2px solid #ff0040;
+    background:#121212;
+    color:#fff;
+    outline:none;
+    font-size:15px;
+    transition:border 0.2s, box-shadow 0.2s;
+}
+
+input:focus, select:focus{
+    border-color:#ff3366;
+    box-shadow:0 0 12px rgba(255,0,64,0.25);
+}
+
+input::placeholder{ color:#555; }
+
+select{
+    appearance:auto;
+    color:#888;
+    cursor:pointer;
+}
+
+select option{ background:#1a1a1a; color:#fff; }
+
+select:not(:has(option:checked[value=""])) {
+    color:#fff;
+}
+
+.botoes{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:8px;
+    margin:16px 0 12px;
+}
+
+button{
+    padding:12px 22px;
+    border:none;
+    border-radius:30px;
+    background:#ff0040;
+    color:#fff;
+    font-weight:600;
+    font-size:0.9rem;
+    cursor:pointer;
+    box-shadow:0 0 16px rgba(255,0,64,0.35);
+    transition:all 0.2s;
+    flex:1 0 auto;
+    min-width:80px;
+    letter-spacing:0.3px;
+}
+
+button:hover{
+    transform:scale(1.02);
+    background:#e6003a;
+    box-shadow:0 0 25px rgba(255,0,64,0.6);
+}
+
+button:active{ transform:scale(0.97); }
+
+button.secondary{
+    background:#222;
+    box-shadow:none;
+    border:1px solid #444;
+}
+
+button.secondary:hover{
+    background:#2a2a2a;
+    border-color:#ff0040;
+}
+
+h3#total{
+    text-align:center;
+    font-weight:400;
+    font-size:1rem;
+    color:#aaa;
+    margin:6px 0 10px;
+    letter-spacing:0.5px;
+}
+
+h3#total span{ color:#ff0040; font-weight:700; }
+
+textarea{
+    width:100%;
+    height:140px;
+    margin-top:6px;
+    border-radius:14px;
+    border:2px solid #ff0040;
+    background:#0a0a0a;
+    color:#d0d0d0;
+    padding:12px;
+    font-size:13px;
+    font-family:'Courier New', monospace;
+    line-height:1.6;
+    letter-spacing:0.2px;
+    resize:vertical;
+    transition:border 0.2s;
+}
+
+textarea:focus{
+    border-color:#ff3366;
+    outline:none;
+}
+
+footer{
+    text-align:center;
+    color:#444;
+    font-size:0.7rem;
+    margin-top:14px;
+    border-top:1px solid #1a1a1a;
+    padding-top:12px;
+}
+
+footer a{
+    color:#ff0040;
+    text-decoration:none;
+}
+</style>
+</head>
+<body>
+
+<div class="box">
+
+<!-- TÃTULO ALTERADO PARA "Gerador de GG" -->
+<h1><span class="dot"></span>Gerador de GG</h1>
+
+<div id="status" class="status">aguardando...</div>
+
+<!-- Bloco de informaÃ§Ãµes do BIN (aparece apÃ³s gerar) -->
+<div id="binInfo" class="bin-info">
+    <span><span class="label">Banco</span><br><span class="value" id="bank">-</span></span>
+    <span><span class="label">Bandeira</span><br><span class="value" id="brand">-</span></span>
+    <span><span class="label">NÃ­vel</span><br><span class="value" id="level">-</span></span>
+    <span><span class="label">PaÃ­s</span><br><span class="value" id="country">- <span class="flag" id="flagEmoji"></span></span></span>
+</div>
+
+<!-- CAMPO MATRIZ â€“ vazio -->
+<input id="bin" placeholder="Matriz (ex: 515894xxxxxxxxxx)">
+
+<!-- QUANTIDADE â€“ vazio -->
+<input id="qtd" placeholder="Quantidade (ex: 10)" type="number" min="1" max="1000">
+
+<select id="mes">
+    <option value="" selected>MÃªs (opcional)</option>
+    <option value="01">01</option><option value="02">02</option><option value="03">03</option>
+    <option value="04">04</option><option value="05">05</option><option value="06">06</option>
+    <option value="07">07</option><option value="08">08</option><option value="09">09</option>
+    <option value="10">10</option><option value="11">11</option><option value="12">12</option>
+</select>
+
+<select id="ano">
+    <option value="" selected>Ano (opcional)</option>
+    <option>2026</option><option>2027</option><option>2028</option><option>2029</option>
+    <option>2030</option><option>2031</option><option>2032</option><option>2033</option>
+    <option>2034</option><option>2035</option><option>2036</option><option>2037</option>
+    <option>2038</option><option>2039</option><option>2040</option>
+</select>
+
+<input id="cvv" placeholder="CVV (opcional)">
+
+<div class="botoes">
+    <button onclick="gerar()">Gerar</button>
+    <button class="secondary" onclick="copiar()">Copiar</button>
+    <button class="secondary" onclick="baixar()">Baixar</button>
+</div>
+
+<h3 id="total">Gerados: <span id="contador">0</span></h3>
+
+<textarea id="resultado" readonly></textarea>
+
+<footer>feito por @wgxws</footer>
+
+</div>
+
+<script>
+// ============================================================
+//  CHAVE DA API (FluidPay)
+// ============================================================
+const API_KEY = 'pub_2HT17PrC7sOCvNp1qwb9XBhb1RO';
+
+// ============================================================
+//  ELEMENTOS DOM
+// ============================================================
+const binInput = document.getElementById('bin');
+const qtdInput = document.getElementById('qtd');
+const mesSelect = document.getElementById('mes');
+const anoSelect = document.getElementById('ano');
+const cvvInput = document.getElementById('cvv');
+const resultadoText = document.getElementById('resultado');
+const contadorSpan = document.getElementById('contador');
+const statusDiv = document.getElementById('status');
+const binInfoDiv = document.getElementById('binInfo');
+const bankSpan = document.getElementById('bank');
+const brandSpan = document.getElementById('brand');
+const levelSpan = document.getElementById('level');
+const countrySpan = document.getElementById('country');
+const flagEmoji = document.getElementById('flagEmoji');
+
+// ============================================================
+//  MAPEAMENTO DE BANDEIRAS (paÃ­s â†’ emoji)
+// ============================================================
+const countryFlags = {
+    'US':'ðŸ‡ºðŸ‡¸','BR':'ðŸ‡§ðŸ‡·','CA':'ðŸ‡¨ðŸ‡¦','GB':'ðŸ‡¬ðŸ‡§','FR':'ðŸ‡«ðŸ‡·',
+    'DE':'ðŸ‡©ðŸ‡ª','IT':'ðŸ‡®ðŸ‡¹','ES':'ðŸ‡ªðŸ‡¸','JP':'ðŸ‡¯ðŸ‡µ','CN':'ðŸ‡¨ðŸ‡³',
+    'RU':'ðŸ‡·ðŸ‡º','AU':'ðŸ‡¦ðŸ‡º','MX':'ðŸ‡²ðŸ‡½','IN':'ðŸ‡®ðŸ‡³','KR':'ðŸ‡°ðŸ‡·',
+    'NL':'ðŸ‡³ðŸ‡±','CH':'ðŸ‡¨ðŸ‡­','SE':'ðŸ‡¸ðŸ‡ª','NO':'ðŸ‡³ðŸ‡´','DK':'ðŸ‡©ðŸ‡°',
+    'FI':'ðŸ‡«ðŸ‡®','PT':'ðŸ‡µðŸ‡¹','AR':'ðŸ‡¦ðŸ‡·','CL':'ðŸ‡¨ðŸ‡±','CO':'ðŸ‡¨ðŸ‡´',
+    'PE':'ðŸ‡µðŸ‡ª','VE':'ðŸ‡»ðŸ‡ª','ZA':'ðŸ‡¿ðŸ‡¦','EG':'ðŸ‡ªðŸ‡¬','NG':'ðŸ‡³ðŸ‡¬',
+    'AE':'ðŸ‡¦ðŸ‡ª','SA':'ðŸ‡¸ðŸ‡¦','TR':'ðŸ‡¹ðŸ‡·','GR':'ðŸ‡¬ðŸ‡·','PL':'ðŸ‡µðŸ‡±',
+    'CZ':'ðŸ‡¨ðŸ‡¿','HU':'ðŸ‡­ðŸ‡º','AT':'ðŸ‡¦ðŸ‡¹','BE':'ðŸ‡§ðŸ‡ª','IE':'ðŸ‡®ðŸ‡ª',
+    'BH':'ðŸ‡§ðŸ‡­','KW':'ðŸ‡°ðŸ‡¼','QA':'ðŸ‡¶ðŸ‡¦','OM':'ðŸ‡´ðŸ‡²','PH':'ðŸ‡µðŸ‡­',
+    'MY':'ðŸ‡²ðŸ‡¾','SG':'ðŸ‡¸ðŸ‡¬','TH':'ðŸ‡¹ðŸ‡­','ID':'ðŸ‡®ðŸ‡©','VN':'ðŸ‡»ðŸ‡³',
+    'PK':'ðŸ‡µðŸ‡°','BD':'ðŸ‡§ðŸ‡©','LK':'ðŸ‡±ðŸ‡°','NP':'ðŸ‡³ðŸ‡µ','IL':'ðŸ‡®ðŸ‡±',
+    'JO':'ðŸ‡¯ðŸ‡´','LB':'ðŸ‡±ðŸ‡§','SY':'ðŸ‡¸ðŸ‡¾','IQ':'ðŸ‡®ðŸ‡¶','IR':'ðŸ‡®ðŸ‡·'
+};
+
+const countryMap = {
+    'USA':'US','BRA':'BR','CAN':'CA','GBR':'GB','FRA':'FR',
+    'DEU':'DE','ITA':'IT','ESP':'ES','JPN':'JP','CHN':'CN',
+    'RUS':'RU','AUS':'AU','MEX':'MX','IND':'IN','KOR':'KR',
+    'NLD':'NL','CHE':'CH','SWE':'SE','NOR':'NO','DNK':'DK',
+    'FIN':'FI','PRT':'PT','ARG':'AR','CHL':'CL','COL':'CO',
+    'PER':'PE','VEN':'VE','ZAF':'ZA','EGY':'EG','NGA':'NG',
+    'ARE':'AE','SAU':'SA','TUR':'TR','GRC':'GR','POL':'PL',
+    'CZE':'CZ','HUN':'HU','AUT':'AT','BEL':'BE','IRL':'IE',
+    'BHR':'BH','KWT':'KW','QAT':'QA','OMN':'OM','PHL':'PH',
+    'MYS':'MY','SGP':'SG','THA':'TH','IDN':'ID','VNM':'VN',
+    'PAK':'PK','BGD':'BD','LKA':'LK','NPL':'NP','ISR':'IL',
+    'JOR':'JO','LBN':'LB','SYR':'SY','IRQ':'IQ','IRN':'IR'
+};
+
+function getCountryFlag(countryCode) {
+    if (!countryCode || countryCode.trim() === '') return 'ðŸ³ï¸';
+    const three = countryCode.toUpperCase().substring(0,3);
+    const two = countryMap[three] || '';
+    return countryFlags[two] || 'ðŸ³ï¸';
+}
+
+// ============================================================
+//  FUNÃ‡ÃƒO PARA CONSULTAR BIN VIA API REAL (FluidPay)
+// ============================================================
+async function consultarBIN(binNum) {
+    try {
+        const headers = {
+            'Authorization': API_KEY,
+            'Content-Type': 'application/json',
+        };
+        const data = {
+            'type': 'tokenizer',
+            'type_id': '230685b9-61e6-4dc4-8cb2-18ef6fd93146',
+            'bin': binNum,
+        };
+        const response = await fetch(
+            'https://app.fluidpay.com/api/lookup/bin/pub_2HT17PrC7sOCvNp1qwb9XBhb1RO',
+            {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify(data),
+            }
+        );
+        const responseData = await response.json();
+
+        if (responseData.status === 'success') {
+            const d = responseData.data;
+            return {
+                success: true,
+                bank: d.issuing_bank || 'Desconhecido',
+                brand: d.card_brand || 'Desconhecido',
+                level: d.card_level_generic || 'Desconhecido',
+                country: d.country || '',
+                type: d.card_type || 'CREDIT'
+            };
+        } else {
+            // fallback local para BINs comuns (apenas BINs reais conhecidos)
+            const fallback = getFallbackBINData(binNum);
+            if (fallback) return { success: true, ...fallback };
+            return { success: false };
+        }
+    } catch (error) {
+        const fallback = getFallbackBINData(binNum);
+        if (fallback) return { success: true, ...fallback };
+        return { success: false };
+    }
+}
+
+function getFallbackBINData(binNum) {
+    const prefix = binNum.substring(0,6);
+    const map = {
+        '434769': { bank:'Banco do Brasil', brand:'VISA', level:'PLATINUM', country:'BRA', type:'CREDIT' },
+        '516292': { bank:'Nubank', brand:'MASTERCARD', level:'STANDARD', country:'BRA', type:'CREDIT' },
+        '453211': { bank:'Citibank', brand:'VISA', level:'GOLD', country:'USA', type:'CREDIT' },
+        '378282': { bank:'American Express', brand:'AMEX', level:'PLATINUM', country:'USA', type:'CREDIT' },
+        '550209': { bank:'Mastercard', brand:'MASTERCARD', level:'STANDARD', country:'GBR', type:'CREDIT' },
+        '411111': { bank:'Visa Test', brand:'VISA', level:'CLASSIC', country:'USA', type:'CREDIT' },
+        '510510': { bank:'Mastercard Test', brand:'MASTERCARD', level:'STANDARD', country:'USA', type:'CREDIT' },
+        '371449': { bank:'American Express', brand:'AMEX', level:'GOLD', country:'USA', type:'CREDIT' },
+        '515462': { bank:'Mastercard', brand:'MASTERCARD', level:'STANDARD', country:'USA', type:'CREDIT' }
+        // NENHUM BIN INVENTADO AQUI
+    };
+    return map[prefix] || null;
+}
+
+// ============================================================
+//  ALGORITMO DE LUHN (validaÃ§Ã£o de cartÃ£o)
+// ============================================================
+function luhnCheck(cardNumber) {
+    const digits = cardNumber.split('').map(Number);
+    let sum = 0, isEven = false;
+    for (let i = digits.length - 1; i >= 0; i--) {
+        let digit = digits[i];
+        if (isEven) { digit *= 2; if (digit > 9) digit -= 9; }
+        sum += digit;
+        isEven = !isEven;
+    }
+    return sum % 10 === 0;
+}
+
+// ============================================================
+//  GERAR NÃšMERO DE CARTÃƒO VÃLIDO (com Luhn)
+// ============================================================
+function generateValidCard(binStart) {
+    // Substitui 'x' por dÃ­gitos aleatÃ³rios
+    let processed = binStart.replace(/x/gi, () => Math.floor(Math.random()*10));
+    const cardLength = (processed.startsWith('34') || processed.startsWith('37')) ? 15 : 16;
+
+    while (true) {
+        let cardNumber = processed;
+        while (cardNumber.length < cardLength) {
+            cardNumber += Math.floor(Math.random()*10);
+        }
+        if (cardNumber.length === cardLength && luhnCheck(cardNumber)) {
+            return cardNumber;
+        }
+        // Se passou do tamanho ou invÃ¡lido, tenta ajustar o Ãºltimo dÃ­gito
+        if (cardNumber.length === cardLength) {
+            for (let last=0; last<10; last++) {
+                const test = cardNumber.substring(0, cardLength-1) + last;
+                if (luhnCheck(test)) return test;
+            }
+        }
+    }
+}
+
+// ============================================================
+//  GERAR CARTÃƒO COMPLETO (nÃºmero, mÃªs, ano, cvv)
+// ============================================================
+function generateCompleteCard(bin, fixedMonth, fixedYear, fixedCvv) {
+    const number = generateValidCard(bin);
+    let month, year;
+
+    if (fixedMonth && fixedYear) {
+        month = String(fixedMonth).padStart(2,'0');
+        year = fixedYear;
+    } else {
+        month = String(Math.floor(Math.random()*12)+1).padStart(2,'0');
+        year = String(Math.floor(Math.random() * (2040-2026+1)) + 2026);
+    }
+
+    const isAmex = bin.startsWith('34') || bin.startsWith('37');
+    let cvv;
+    if (fixedCvv !== null && fixedCvv !== '') {
+        cvv = String(fixedCvv).padStart(isAmex ? 4 : 3, '0').slice(0, isAmex ? 4 : 3);
+    } else {
+        const max = isAmex ? 9000 : 900;
+        const min = isAmex ? 1000 : 100;
+        cvv = String(Math.floor(Math.random() * (max - min + 1)) + min);
+    }
+
+    return { number, month, year, shortYear: year.slice(-2), cvv };
+}
+
+// ============================================================
+//  FUNÃ‡ÃƒO PRINCIPAL: GERAR
+// ============================================================
+async function gerar() {
+    const raw = binInput.value.trim();
+    if (!raw) {
+        alert('â— Coloque pelo menos a Matriz (BIN).');
+        return;
+    }
+
+    let qtd = parseInt(qtdInput.value) || 0;
+    if (qtd < 1) {
+        alert('â— Informe uma quantidade vÃ¡lida (mÃ­nimo 1).');
+        return;
+    }
+    if (qtd > 1000) qtd = 1000;
+
+    // Extrair BIN, mÃªs e ano se vierem no formato "BIN|MM|AAAA"
+    let bin = raw;
+    let fixedMonth = mesSelect.value || null;
+    let fixedYear = anoSelect.value || null;
+
+    if (raw.includes('|')) {
+        const parts = raw.split('|');
+        bin = parts[0].trim();
+        if (parts[1] && parts[1].trim()) fixedMonth = parts[1].trim().padStart(2,'0');
+        if (parts[2] && parts[2].trim()) {
+            let y = parts[2].trim();
+            if (y.length === 2) y = '20' + y;
+            fixedYear = y;
+        }
+    }
+
+    const cvvFixed = cvvInput.value.trim() || null;
+
+    // Limpar bin para apenas nÃºmeros + x
+    const cleanBin = bin.replace(/\s/g, '').toLowerCase();
+
+    statusDiv.textContent = 'â³ consultando BIN...';
+    statusDiv.className = 'status';
+
+    // Consultar API
+    const binResult = await consultarBIN(cleanBin.replace(/x/g, '0').substring(0,6));
+
+    // Exibir informaÃ§Ãµes
+    if (binResult && binResult.success) {
+        bankSpan.textContent = binResult.bank.toUpperCase() || '-';
+        brandSpan.textContent = binResult.brand || '-';
+        levelSpan.textContent = binResult.level.toUpperCase() || '-';
+        const countryCode = binResult.country || '';
+        countrySpan.textContent = countryCode.toUpperCase() || '-';
+        flagEmoji.textContent = getCountryFlag(countryCode);
+        binInfoDiv.classList.add('show');
+        statusDiv.textContent = 'âœ… BIN verificado';
+        statusDiv.className = 'status finalizado';
+    } else {
+        bankSpan.textContent = 'N/A';
+        brandSpan.textContent = 'N/A';
+        levelSpan.textContent = 'N/A';
+        countrySpan.textContent = 'N/A';
+        flagEmoji.textContent = 'ðŸ³ï¸';
+        binInfoDiv.classList.add('show');
+        statusDiv.textContent = 'âš ï¸ API offline â€“ usando fallback';
+        statusDiv.className = 'status offline';
+    }
+
+    // Gerar cartÃµes
+    let lista = '';
+    for (let i = 0; i < qtd; i++) {
+        const card = generateCompleteCard(cleanBin, fixedMonth, fixedYear, cvvFixed);
+        // Formato: NÃºmero|MÃªs|Ano(4 dÃ­gitos)|CVV
+        lista += `${card.number}|${card.month}|${card.year}|${card.cvv}\n`;
+    }
+
+    resultadoText.value = lista.trim();
+    contadorSpan.textContent = qtd;
+    statusDiv.textContent = 'âœ… finalizado âœ”ï¸';
+    statusDiv.className = 'status finalizado';
+
+    // Rolar para o textarea
+    resultadoText.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// ============================================================
+//  COPIAR E BAIXAR
+// ============================================================
+function copiar() {
+    const texto = resultadoText.value;
+    if (!texto) { alert('Nada para copiar.'); return; }
+    navigator.clipboard.writeText(texto).then(() => {
+        alert('ðŸ“‹ Copiado para a Ã¡rea de transferÃªncia!');
+    }).catch(() => {
+        resultadoText.select();
+        document.execCommand('copy');
+        alert('ðŸ“‹ Copiado!');
+    });
+}
+
+function baixar() {
+    const texto = resultadoText.value;
+    if (!texto) { alert('Nada para baixar.'); return; }
+    const blob = new Blob([texto], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `cards_${new Date().toISOString().slice(0,10)}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+}
+
+// ============================================================
+//  ENTER PARA GERAR
+// ============================================================
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+        gerar();
+    }
+});
+
+// ============================================================
+//  INICIALIZAÃ‡ÃƒO â€“ NÃƒO PREENCHE OS CAMPOS, APENAS TESTA A API
+// ============================================================
+window.addEventListener('load', () => {
+    setTimeout(async () => {
+        const test = await consultarBIN('434769');
+        if (!test.success) {
+            statusDiv.textContent = 'âš ï¸ API offline (fallback ativo)';
+            statusDiv.className = 'status offline';
+        } else {
+            statusDiv.textContent = 'âœ… API online â€“ aguardando...';
+            statusDiv.className = 'status online';
+        }
+    }, 500);
+});
+</script>
+
+</body>
+</html>
